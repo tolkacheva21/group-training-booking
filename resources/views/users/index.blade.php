@@ -5,7 +5,7 @@
 @section('content')
     <h1>Пользователи</h1>
 
-    <p><a href="{{ route('users.create') }}" class="btn btn-primary">Добавить пользователя</a></p>
+    <p><a href="{{ route('users.create') }}" class="button">+ Добавить пользователя</a></p>
 
     <table>
         <thead>
@@ -27,13 +27,13 @@
                     <td>{{ $user->phone_number }}</td>
                     <td>{{ $user->is_admin ? 'Да' : 'Нет' }}</td>
                     <td>
-                        <a href="{{ route('users.show', $user) }}" class="btn">Просмотр</a>
-                        <a href="{{ route('users.edit', $user) }}" class="btn">Изменить</a>
+                        <a href="{{ route('users.show', $user) }}" class="button">Просмотр</a>
+                        <a href="{{ route('users.edit', $user) }}" class="button">Изменить</a>
                         <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline"
                               onsubmit="return confirm('Удалить пользователя?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Удалить</button>
+                            <button type="submit" class="button">Удалить</button>
                         </form>
                     </td>
                 </tr>
