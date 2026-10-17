@@ -19,7 +19,7 @@ Route::resource('rooms', RoomController::class);
 Route::resource('trainers', TrainerController::class);
 
 // Тренировки crud
-// Route::recource('workouts', WorkoutController::class);
+Route::resource('workouts', WorkoutController::class);
 
-// Записи crud (возможно реализовать по другому)
-// Route::resource('records', RecordController::class);
+// Записи crud
+Route::resource('records', RecordController::class);

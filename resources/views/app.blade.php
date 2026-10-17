@@ -139,8 +139,10 @@
 <body>
     <header>
         <a href="{{ route('users.index') }}">Пользователи</a>
-        <a href="{{ route('rooms.index') }}">Комнаты</a>
+        <a href="{{ route('rooms.index') }}">Залы</a>
         <a href="{{ route('trainers.index') }}">Тренеры</a>
+        <a href="{{ route('workouts.index') }}">Тренировки</a>
+        <a href="{{ route('records.index') }}">Записи</a>
     </header>
 
     <main>

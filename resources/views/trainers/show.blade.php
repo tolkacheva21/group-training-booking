@@ -17,7 +17,7 @@
         <br>
 
         <a class="button" href="{{ route('trainers.index') }}">
-            ← К списку тренеров
+            К списку тренеров
         </a>
     </div>
 @endsection
