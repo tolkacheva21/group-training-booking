@@ -28,5 +28,5 @@
     <input type="password" id="password_confirmation" name="password_confirmation">
 </div>
 
-<button type="submit" class="btn btn-primary">Сохранить</button>
-<a href="{{ route('users.index') }}" class="btn">Отмена</a>
+<button type="submit" class="button">Сохранить</button>
+<a href="{{ route('users.index') }}" class="button">Отмена</a>

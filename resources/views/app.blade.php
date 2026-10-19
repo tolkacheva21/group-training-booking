@@ -134,6 +134,50 @@
         .errors ul {
             margin-bottom: 0;
         }
+
+        header a {
+            margin-right: 20px;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            margin: 0 0 25px;
+            border: 1px solid #dce3dd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .details dt,
+        .details dd {
+            margin: 0;
+            padding: 12px 15px;
+            border-bottom: 1px solid #dce3dd;
+        }
+
+        .details dt {
+            background: #edf3ee;
+            font-weight: bold;
+        }
+
+        .details dd {
+            background: white;
+        }
+
+        .details dt:last-of-type,
+        .details dd:last-of-type {
+            border-bottom: 0;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .actions .button {
+            margin: 0;
+        }
     </style>
 </head>
 <body>

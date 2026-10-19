@@ -10,5 +10,5 @@
     @error('capacity') <div class="error">{{ $message }}</div> @enderror
 </div>
 
-<button type="submit" class="btn btn-primary">Сохранить</button>
-<a href="{{ route('rooms.index') }}" class="btn">Отмена</a>
+<button type="submit" class="button">Сохранить</button>
+<a href="{{ route('rooms.index') }}" class="button">Отмена</a>
