@@ -14,7 +14,7 @@
                     <th>ID</th>
                     <th>Номер</th>
                     <th>Вместимость</th>
-                    <th></th>
+                    <th>Действия</th>
                 </tr>
             </thead>
             <tbody>

@@ -14,8 +14,8 @@
             <dt>Телефон</dt>
             <dd>{{ $user->phone_number }}</dd>
 
-            <dt>Администратор</dt>
-            <dd>{{ $user->is_admin ? 'Да' : 'Нет' }}</dd>
+            <dt>Роль</dt>
+            <dd>{{ $user->role?->name}}</dd>
 
             <dt>Создан</dt>
             <dd>{{ $user->created_at?->format('d.m.Y H:i') }}</dd>
