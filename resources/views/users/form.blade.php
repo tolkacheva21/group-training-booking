@@ -28,5 +28,18 @@
     <input type="password" id="password_confirmation" name="password_confirmation">
 </div>
 
+<div class="field">
+    <label for="role_id">Роль</label>
+    <select name="role_id" id="role_id" required>
+        @foreach ($roles as $role)
+            <option value="{{ $role -> id }}"
+                @selected(old('role_id', $user -> role_id ?? '') == $role -> id)>
+                {{ $role -> name }}
+            </option>
+        @endforeach
+    </select>
+    @error('role_id') <div class="error">{{ $message }}</div> @enderror
+</div>
+
 <button type="submit" class="button">Сохранить</button>
 <a href="{{ route('users.index') }}" class="button">Отмена</a>

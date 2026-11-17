@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone_number')->unique();
             $table->string('password');
-            $table->boolean('is_admin')->default(false);
+            $table->rememberToken();
+            $table->foreignId('role_id')->constrained()->restrictOnDelete();
             $table->timestamps();
         });
 

@@ -1,37 +1,13 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Yoga</title>
-
+<x-app-layout>
     <style>
         * {
             box-sizing: border-box;
         }
 
-        body {
-            margin: 0;
-            background: #f3f5f3;
-            color: #26372c;
-            font-family: Arial, sans-serif;
-            line-height: 1.5;
-        }
 
-        header {
-            padding: 18px 30px;
-            background: #365d46;
-        }
 
-        header a {
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            text-decoration: none;
-        }
 
-        main {
+        .page {
             max-width: 1100px;
             margin: 30px auto;
             padding: 0 20px;
@@ -135,9 +111,6 @@
             margin-bottom: 0;
         }
 
-        header a {
-            margin-right: 20px;
-        }
 
         .details {
             display: grid;
@@ -179,17 +152,8 @@
             margin: 0;
         }
     </style>
-</head>
-<body>
-    <header>
-        <a href="{{ route('users.index') }}">Пользователи</a>
-        <a href="{{ route('rooms.index') }}">Залы</a>
-        <a href="{{ route('trainers.index') }}">Тренеры</a>
-        <a href="{{ route('workouts.index') }}">Тренировки</a>
-        <a href="{{ route('records.index') }}">Записи</a>
-    </header>
 
-    <main>
+    <div class="page">
         @if ($errors->any())
             <div class="errors">
                 <p>Исправьте ошибки:</p>
@@ -203,6 +167,5 @@
         @endif
 
         @yield('content')
-    </main>
-</body>
-</html>
+    </div>
+</x-app-layout>

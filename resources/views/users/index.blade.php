@@ -15,8 +15,8 @@
                     <th>Имя</th>
                     <th>Email</th>
                     <th>Телефон</th>
-                    <th>Админ</th>
-                    <th></th>
+                    <th>Роль</th>
+                    <th>Действия</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,7 +26,7 @@
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->phone_number }}</td>
-                        <td>{{ $user->is_admin ? 'Да' : 'Нет' }}</td>
+                        <td>{{ $user->role?->name }}</td>
                         <td>
                             <a href="{{ route('users.show', $user) }}" class="button">Просмотр</a>
                             <a href="{{ route('users.edit', $user) }}" class="button button-edit">Изменить</a>
