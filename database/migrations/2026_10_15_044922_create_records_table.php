@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('workout_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('status_id')->constrained()->restrictOnDelete();
         });
     }
 

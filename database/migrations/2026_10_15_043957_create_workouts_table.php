@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('workouts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('trainer_id')->constrained()->restrictOnDelete();
+            $table->foreignId('trainer_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('room_id')->constrained()->restrictOnDelete();
             $table->integer('current_participants')->default(0);
             $table->timestamp('workout_start');

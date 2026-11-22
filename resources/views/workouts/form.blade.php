@@ -44,6 +44,29 @@
     value="{{ old('workout_end', isset($workout) ? $workout->workout_end->format('Y-m-d\TH:i') : '') }}"
 >
 
+<label for="inventory_id">Инвентарь</label>
+
+<select id="inventory_id" name="inventory_id">
+    <option value="">Без инвентаря</option>
+
+    @foreach ($inventories as $inventory)
+        <option value="{{ $inventory->id }}"
+            @selected(old('inventory_id', $workout->inventory_id ?? '') == $inventory->id)>
+            {{ $inventory->name }} — всего {{ $inventory->quantity }} шт.
+        </option>
+    @endforeach
+</select>
+
+<label for="inventory_quantity">Количество инвентаря</label>
+
+<input
+    id="inventory_quantity"
+    type="number"
+    name="inventory_quantity"
+    min="1"
+    value="{{ old('inventory_quantity', $workout->inventory_quantity ?? '') }}"
+>
+
 <div class="form-actions">
     <button type="submit">Сохранить</button>
 

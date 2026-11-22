@@ -4,28 +4,11 @@
     <div class="card">
         <h1>Запись на тренировку</h1>
 
-        @if ($users->isEmpty())
-            <p>В базе пока нет пользователей.</p>
-        @elseif ($workouts->isEmpty())
+        @if ($workouts->isEmpty())
             <p>Нет доступных для выбора будущих тренировок.</p>
         @else
             <form action="{{ route('records.store') }}" method="POST">
                 @csrf
-
-                <label for="user_id">
-                    Пользователь — временный выбор для проверки
-                </label>
-
-                <select id="user_id" name="user_id" required>
-                    <option value="">Выберите пользователя</option>
-
-                    @foreach ($users as $user)
-                        <option value="{{ $user->id }}"
-                            @selected(old('user_id') == $user->id)>
-                            {{ $user->name }} — {{ $user->email }}
-                        </option>
-                    @endforeach
-                </select>
 
                 <label for="workout_id">Тренировка</label>
 

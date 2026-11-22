@@ -5,9 +5,11 @@
         <div class="top-line">
             <h1>Тренировки по йоге</h1>
 
-            <a class="button" href="{{ route('workouts.create') }}">
-                Добавить тренировку
-            </a>
+            @can('manage', App\Models\Workout::class)
+                <a class="button" href="{{ route('workouts.create') }}">
+                    Добавить тренировку
+                </a>
+            @endcan
         </div>
 
         <div class="table-wrapper">
@@ -49,23 +51,25 @@
                                     Открыть
                                 </a>
 
-                                <a class="button button-edit"
-                                   href="{{ route('workouts.edit', $workout) }}">
-                                    Изменить
-                                </a>
+                                @can('manage', App\Models\Workout::class)
+                                    <a class="button button-edit"
+                                       href="{{ route('workouts.edit', $workout) }}">
+                                        Изменить
+                                    </a>
 
-                                <form class="inline"
-                                      action="{{ route('workouts.destroy', $workout) }}"
-                                      method="POST">
-                                    @csrf
-                                    @method('DELETE')
+                                    <form class="inline"
+                                          action="{{ route('workouts.destroy', $workout) }}"
+                                          method="POST">
+                                        @csrf
+                                        @method('DELETE')
 
-                                    <button class="button-danger"
-                                            type="submit"
-                                            onclick="return confirm('Удалить тренировку и все записи на неё?')">
-                                        Удалить
-                                    </button>
-                                </form>
+                                        <button class="button-danger"
+                                                type="submit"
+                                                onclick="return confirm('Удалить тренировку и все записи на неё?')">
+                                            Удалить
+                                        </button>
+                                    </form>
+                                @endcan
                             </td>
                         </tr>
                     @empty

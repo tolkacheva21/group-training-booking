@@ -4,7 +4,7 @@
     $navItems = collect([
         'users' => 'Пользователи',
         'rooms' => 'Залы',
-        'trainers' => 'Тренеры',
+        'inventories' => 'Инвентарь',
         'workouts' => 'Тренировки',
         'records' => 'Записи',
     ])->filter(function (string $title, string $routeName) use ($currentRole): bool {

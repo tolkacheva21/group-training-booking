@@ -19,6 +19,7 @@
                         <th>Начало тренировки</th>
                         <th>Тренер</th>
                         <th>Зал</th>
+                        <th>Статус</th>
                         <th>Действия</th>
                     </tr>
                 </thead>
@@ -38,29 +39,59 @@
 
                             <td>№{{ $record->workout->room->number }}</td>
 
+                            <td>{{ $record->status->title }}</td>
+
                             <td>
                                 <a class="button"
                                    href="{{ route('records.show', $record) }}">
                                     Открыть
                                 </a>
 
-                                <form class="inline"
-                                      action="{{ route('records.destroy', $record) }}"
-                                      method="POST">
-                                    @csrf
-                                    @method('DELETE')
+                                @can('confirm', $record)
+                                    <form class="inline"
+                                          action="{{ route('records.confirm', $record) }}"
+                                          method="POST">
+                                        @csrf
+                                        @method('PATCH')
 
-                                    <button class="button-danger"
-                                            type="submit"
-                                            onclick="return confirm('Отменить запись на тренировку?')">
-                                        Отменить запись
-                                    </button>
-                                </form>
+                                        <button type="submit">Подтвердить</button>
+                                    </form>
+                                @endcan
+
+                                @can('reject', $record)
+                                    <form class="inline"
+                                          action="{{ route('records.reject', $record) }}"
+                                          method="POST">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <button class="button-danger"
+                                                type="submit"
+                                                onclick="return confirm('Отклонить запись?')">
+                                            Отклонить
+                                        </button>
+                                    </form>
+                                @endcan
+
+                                @can('delete', $record)
+                                    <form class="inline"
+                                          action="{{ route('records.destroy', $record) }}"
+                                          method="POST">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button class="button-danger"
+                                                type="submit"
+                                                onclick="return confirm('Отменить запись на тренировку?')">
+                                            Отменить запись
+                                        </button>
+                                    </form>
+                                @endcan
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6">
+                            <td colspan="7">
                                 Записей пока нет.
                             </td>
                         </tr>

@@ -4,6 +4,8 @@
     <div class="card">
         <h1>Запись №{{ $record->id }}</h1>
 
+        <p>Статус: {{ $record->status->title }}</p>
+
         <h2>Пользователь</h2>
 
         <p>Имя: {{ $record->user->name }}</p>
@@ -26,27 +28,57 @@
         </p>
 
         <div class="form-actions">
-            <a class="button"
-               href="{{ route('workouts.show', $record->workout) }}">
-                Открыть тренировку
-            </a>
+            @can('view', $record->workout)
+                <a class="button"
+                   href="{{ route('workouts.show', $record->workout) }}">
+                    Открыть тренировку
+                </a>
+            @endcan
 
             <a class="button" href="{{ route('records.index') }}">
                 К списку записей
             </a>
 
-            <form class="inline"
-                  action="{{ route('records.destroy', $record) }}"
-                  method="POST">
-                @csrf
-                @method('DELETE')
+            @can('confirm', $record)
+                <form class="inline"
+                      action="{{ route('records.confirm', $record) }}"
+                      method="POST">
+                    @csrf
+                    @method('PATCH')
 
-                <button class="button-danger"
-                        type="submit"
-                        onclick="return confirm('Отменить запись на тренировку?')">
-                    Отменить запись
-                </button>
-            </form>
+                    <button type="submit">Подтвердить</button>
+                </form>
+            @endcan
+
+            @can('reject', $record)
+                <form class="inline"
+                      action="{{ route('records.reject', $record) }}"
+                      method="POST">
+                    @csrf
+                    @method('PATCH')
+
+                    <button class="button-danger"
+                            type="submit"
+                            onclick="return confirm('Отклонить запись?')">
+                        Отклонить
+                    </button>
+                </form>
+            @endcan
+
+            @can('delete', $record)
+                <form class="inline"
+                      action="{{ route('records.destroy', $record) }}"
+                      method="POST">
+                    @csrf
+                    @method('DELETE')
+
+                    <button class="button-danger"
+                            type="submit"
+                            onclick="return confirm('Отменить запись на тренировку?')">
+                        Отменить запись
+                    </button>
+                </form>
+            @endcan
         </div>
     </div>
 @endsection

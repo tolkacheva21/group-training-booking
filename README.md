@@ -12,3 +12,12 @@ php artisan serve
 php artisan migrate:reset
 php artisan migrate
 php artisan db:seed --class=RoleSeeder
+
+
+
+npm install
+npm run build
+
+выпонить:
+php artisan migrate:fresh --seed
+обязательно запустить планировщик: локально  php artisan schedule:work
