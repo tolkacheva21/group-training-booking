@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +33,12 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
+
+        // Планировщик запускается вместе с `composer run dev`, иначе задачи
+        // (например, завершение прошедших тренировок) не выполняются локально.
+        if (app()->runningInConsole()) {
+            DevCommands::artisan('schedule:work', 'scheduler');
+        }
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),

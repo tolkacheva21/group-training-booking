@@ -2,40 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentStatus;
 use App\Models\Record;
 use App\Models\Status;
 use App\Models\Workout;
+use App\Services\BookingService;
+use App\Services\PaymentSimulator;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class RecordController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly BookingService $bookings,
+        private readonly PaymentSimulator $payments,
+    ) {}
+
+    /**
+     * Список записей. Посетитель сразу видит доступные тренировки и свои записи,
+     * администратор и менеджер — все записи пользователей.
+     */
+    public function index(Request $request): View
     {
+        $user = $request->user();
+        $canBook = $user->can('book', Record::class);
+
         $records = Record::with(['user', 'status', 'workout.trainer', 'workout.room'])
             ->when(
                 Gate::denies('viewAll', Record::class),
-                fn ($query) => $query->where('user_id', $request->user()->id)
+                fn ($query) => $query->where('user_id', $user->id)
             )
+            ->latest('id')
             ->get();
 
-        return view('records.index', compact('records'));
+        // Доступные для записи тренировки видит только посетитель
+        $workouts = $canBook
+            ? Workout::with(['trainer', 'room'])
+                ->withCount('bookedRecords as booked_count')
+                ->notCancelled()
+                ->where('workout_start', '>', now())
+                ->orderBy('workout_start')
+                ->get()
+            : collect();
+
+        // Для каждой тренировки — запись текущего пользователя, чтобы показать статус
+        $userRecords = $records
+            ->where('user_id', $user->id)
+            ->keyBy('workout_id');
+
+        return view('records.index', compact('records', 'workouts', 'userRecords', 'canBook'));
     }
 
-    public function create()
+    /**
+     * Отдельная форма создания записи больше не нужна: запись выполняется
+     * кнопкой «Записаться» напротив тренировки в списке.
+     */
+    public function create(): RedirectResponse
     {
-        $workouts = Workout::with(['trainer', 'room'])
-            ->where('workout_start', '>', now())
-            ->orderBy('workout_start')
-            ->get();
+        Gate::authorize('book', Record::class);
 
-        return view('records.create', compact('workouts'));
+        return redirect()->route('records.index');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
+        Gate::authorize('book', Record::class);
+
         $data = $request->validate([
             'workout_id' => ['required', 'integer', 'exists:workouts,id'],
         ], [
@@ -43,47 +79,14 @@ class RecordController extends Controller
             'workout_id.exists' => 'Тренировка не найдена.',
         ]);
 
-        $data['user_id'] = $request->user()->id;
+        $record = $this->bookings->book($request->user(), (int) $data['workout_id']);
 
-        DB::transaction(function () use ($data) {
-            $workout = Workout::with('room')->lockForUpdate()->findOrFail($data['workout_id']);
-
-            if ($workout->workout_start->lessThanOrEqualTo(now())) {
-                throw ValidationException::withMessages([
-                    'workout_id' => 'Тренировка уже началась.',
-                ]);
-            }
-
-            if ($workout->trainer_id === $data['user_id']) {
-                throw ValidationException::withMessages([
-                    'workout_id' => 'Нельзя записаться на собственную тренировку.',
-                ]);
-            }
-
-            $alreadyExists = Record::where('workout_id', $workout->id)
-                ->where('user_id', $data['user_id'])
-                ->exists();
-
-            if ($alreadyExists) {
-                throw ValidationException::withMessages([
-                    'workout_id' => 'Вы уже записаны на выбранную тренировку.',
-                ]);
-            }
-
-            if ($workout->occupyingRecords()->count() >= $workout->room->capacity) {
-                throw ValidationException::withMessages([
-                    'workout_id' => 'На тренировке нет свободных мест.',
-                ]);
-            }
-
-            // Новая запись ждёт подтверждения менеджером и место пока не занимает
-            Record::create($data + ['status_id' => Status::idOf(Status::Pending)]);
-        });
-
-        return redirect()->route('records.index');
+        return redirect()
+            ->route('records.show', $record)
+            ->with('success', 'Вы записаны на тренировку. Осталось оплатить участие.');
     }
 
-    public function show(Record $record)
+    public function show(Record $record): View
     {
         Gate::authorize('view', $record);
 
@@ -93,9 +96,33 @@ class RecordController extends Controller
     }
 
     /**
+     * Имитация успешной оплаты записи.
+     */
+    public function pay(Record $record): RedirectResponse
+    {
+        Gate::authorize('pay', $record);
+
+        $this->payments->pay($record);
+
+        return back()->with('success', 'Оплата прошла успешно. Запись оплачена.');
+    }
+
+    /**
+     * Имитация отмены/неуспешной оплаты.
+     */
+    public function cancelPayment(Record $record): RedirectResponse
+    {
+        Gate::authorize('pay', $record);
+
+        $this->payments->cancel($record);
+
+        return back()->with('success', 'Оплата отменена. Запись осталась неоплаченной.');
+    }
+
+    /**
      * Менеджер подтверждает запись, если в зале остались места.
      */
-    public function confirm(Record $record)
+    public function confirm(Record $record): RedirectResponse
     {
         Gate::authorize('confirm', $record);
 
@@ -135,7 +162,7 @@ class RecordController extends Controller
     /**
      * Менеджер отклоняет запись: при переполнении или по другой причине. Место освобождается.
      */
-    public function reject(Record $record)
+    public function reject(Record $record): RedirectResponse
     {
         Gate::authorize('reject', $record);
 
@@ -150,6 +177,11 @@ class RecordController extends Controller
 
             $record->update(['status_id' => Status::idOf(Status::Rejected)]);
 
+            // Отклонённая запись не может оставаться оплаченной — имитируем возврат
+            if ($record->isPaid()) {
+                $record->update(['payment_status' => PaymentStatus::Cancelled, 'paid_at' => null]);
+            }
+
             $workout->current_participants = $workout->occupyingRecords()->count();
             $workout->save();
         });
@@ -157,7 +189,7 @@ class RecordController extends Controller
         return back();
     }
 
-    public function destroy(Record $record)
+    public function destroy(Record $record): RedirectResponse
     {
         Gate::authorize('delete', $record);
 

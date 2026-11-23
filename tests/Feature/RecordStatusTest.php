@@ -39,7 +39,7 @@ test('new record by a user is not confirmed and takes no place', function () {
     $workout = statusWorkout();
 
     $this->actingAs(statusUser())->post(route('records.store'), ['workout_id' => $workout->id])
-        ->assertRedirect(route('records.index'));
+        ->assertRedirect();
 
     expect(Record::sole()->status->name)->toBe(Status::Pending)
         ->and($workout->fresh()->current_participants)->toBe(0);

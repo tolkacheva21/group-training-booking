@@ -28,21 +28,29 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('records', RecordController::class);
+    Route::resource('records', RecordController::class)
+        ->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::patch('records/{record}/pay', [RecordController::class, 'pay'])->name('records.pay');
+    Route::patch('records/{record}/cancel-payment', [RecordController::class, 'cancelPayment'])
+        ->name('records.cancel-payment');
 });
 
-// Залы и управление тренировками: администратор и менеджер
+// Залы и инвентарь: администратор и менеджер
 Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::resource('rooms', RoomController::class);
     Route::resource('inventories', InventoryController::class)->except(['show']);
-    Route::resource('workouts', WorkoutController::class)->except(['index', 'show']);
-    Route::patch('records/{record}/confirm', [RecordController::class, 'confirm'])->name('records.confirm');
-    Route::patch('records/{record}/reject', [RecordController::class, 'reject'])->name('records.reject');
 });
 
-// Просмотр тренировок: администратор, менеджер и тренер (только свои тренировки)
+// Управление тренировками: администратор, менеджер (любые) и тренер (только свои).
+// Права на конкретную тренировку проверяются политикой WorkoutPolicy.
 Route::middleware(['auth', 'role:admin,manager,trainer'])->group(function () {
-    Route::resource('workouts', WorkoutController::class)->only(['index', 'show']);
+    Route::resource('workouts', WorkoutController::class);
+});
+
+// Подтверждение и отклонение записей: администратор и менеджер
+Route::middleware(['auth', 'role:admin,manager'])->group(function () {
+    Route::patch('records/{record}/confirm', [RecordController::class, 'confirm'])->name('records.confirm');
+    Route::patch('records/{record}/reject', [RecordController::class, 'reject'])->name('records.reject');
 });
 
 // Управление пользователями: только администратор

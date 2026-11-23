@@ -26,11 +26,11 @@ function workoutPayload(object $test, array $overrides = []): array
     ];
 }
 
-function workoutWithInventory(object $test, int $quantity, string $start, string $end): Workout
+function workoutWithInventory(object $test, int $quantity, string $start, string $end, ?User $trainer = null, ?Room $room = null): Workout
 {
     return Workout::create([
-        'trainer_id' => $test->trainer->id,
-        'room_id' => $test->room->id,
+        'trainer_id' => ($trainer ?? $test->trainer)->id,
+        'room_id' => ($room ?? $test->room)->id,
         'inventory_id' => $test->inventory->id,
         'inventory_quantity' => $quantity,
         'workout_start' => now()->addDay()->setTimeFromTimeString($start),
@@ -49,7 +49,10 @@ test('manager assigns available inventory to a new workout', function () {
 });
 
 test('inventory occupied by an overlapping workout cannot be assigned', function () {
-    workoutWithInventory($this, 8, '10:30', '11:30');
+    // Другой тренер и другой зал, чтобы конфликт был именно по инвентарю
+    $otherTrainer = User::factory()->create(['role_id' => Role::firstOrCreate(['name' => 'trainer'])->id]);
+    $otherRoom = Room::create(['number' => 2, 'capacity' => 10]);
+    workoutWithInventory($this, 8, '10:30', '11:30', $otherTrainer, $otherRoom);
 
     $this->actingAs($this->manager)
         ->post(route('workouts.store'), workoutPayload($this, ['inventory_quantity' => 3]))
@@ -59,7 +62,9 @@ test('inventory occupied by an overlapping workout cannot be assigned', function
 });
 
 test('inventory is free again after the other workout ends', function () {
-    workoutWithInventory($this, 10, '08:00', '10:00');
+    $otherTrainer = User::factory()->create(['role_id' => Role::firstOrCreate(['name' => 'trainer'])->id]);
+    $otherRoom = Room::create(['number' => 2, 'capacity' => 10]);
+    workoutWithInventory($this, 10, '08:00', '10:00', $otherTrainer, $otherRoom);
 
     $this->actingAs($this->manager)
         ->post(route('workouts.store'), workoutPayload($this, ['inventory_quantity' => 10]))

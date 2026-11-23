@@ -5,7 +5,7 @@
         <div class="top-line">
             <h1>Тренировки по йоге</h1>
 
-            @can('manage', App\Models\Workout::class)
+            @can('create', App\Models\Workout::class)
                 <a class="button" href="{{ route('workouts.create') }}">
                     Добавить тренировку
                 </a>
@@ -20,6 +20,8 @@
                         <th>Окончание</th>
                         <th>Тренер</th>
                         <th>Зал</th>
+                        <th>Стоимость</th>
+                        <th>Статус</th>
                         <th>Участники</th>
                         <th>Действия</th>
                     </tr>
@@ -29,16 +31,20 @@
                     @forelse ($workouts as $workout)
                         <tr>
                             <td>
-                                {{ $workout->workout_start->format('d.m.Y H:i') }}
+                                {{ \App\Support\DisplayTime::toLocal($workout->workout_start)->format('d.m.Y H:i') }}
                             </td>
 
                             <td>
-                                {{ $workout->workout_end->format('d.m.Y H:i') }}
+                                {{ \App\Support\DisplayTime::toLocal($workout->workout_end)->format('d.m.Y H:i') }}
                             </td>
 
                             <td>{{ $workout->trainer->name }}</td>
 
                             <td>№{{ $workout->room->number }}</td>
+
+                            <td>{{ number_format((float) $workout->price, 2, ',', ' ') }} ₽</td>
+
+                            <td>{{ $workout->statusLabel() }}</td>
 
                             <td>
                                 {{ $workout->current_participants }}
@@ -51,12 +57,14 @@
                                     Открыть
                                 </a>
 
-                                @can('manage', App\Models\Workout::class)
+                                @can('update', $workout)
                                     <a class="button button-edit"
                                        href="{{ route('workouts.edit', $workout) }}">
                                         Изменить
                                     </a>
+                                @endcan
 
+                                @can('delete', $workout)
                                     <form class="inline"
                                           action="{{ route('workouts.destroy', $workout) }}"
                                           method="POST">
@@ -74,7 +82,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6">
+                            <td colspan="8">
                                 Тренировок пока нет.
                             </td>
                         </tr>

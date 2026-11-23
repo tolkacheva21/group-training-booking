@@ -71,10 +71,46 @@ test('trainer sees only own workouts', function () {
     $this->actingAs($trainer)->get(route('workouts.index'))
         ->assertOk()
         ->assertSee(route('workouts.show', $ownWorkout), false)
-        ->assertDontSee(route('workouts.show', $otherWorkout), false)
-        ->assertDontSee(route('workouts.create'), false);
+        ->assertDontSee(route('workouts.show', $otherWorkout), false);
 
     $this->actingAs($trainer)->get(route('workouts.show', $otherWorkout))->assertForbidden();
+});
+
+test('trainer creates and edits own workout but not workouts of others', function () {
+    $trainer = userWithRole('trainer');
+    $room = Room::create(['number' => 1, 'capacity' => 10]);
+
+    $this->actingAs($trainer)->get(route('workouts.create'))->assertOk();
+
+    $this->actingAs($trainer)->post(route('workouts.store'), [
+        'trainer_id' => $trainer->id,
+        'room_id' => $room->id,
+        'workout_start' => now()->addDay()->setTime(10, 0)->format('Y-m-d H:i'),
+        'workout_end' => now()->addDay()->setTime(11, 0)->format('Y-m-d H:i'),
+    ])->assertRedirect(route('workouts.index'));
+
+    $workout = Workout::sole();
+    expect($workout->trainer->is($trainer))->toBeTrue();
+
+    $this->actingAs($trainer)->get(route('workouts.edit', $workout))->assertOk();
+
+    $otherWorkout = workoutFor(userWithRole('trainer'));
+    $this->actingAs($trainer)->get(route('workouts.edit', $otherWorkout))->assertForbidden();
+});
+
+test('trainer cannot assign a workout to another trainer', function () {
+    $trainer = userWithRole('trainer');
+    $otherTrainer = userWithRole('trainer');
+    $room = Room::create(['number' => 1, 'capacity' => 10]);
+
+    $this->actingAs($trainer)->post(route('workouts.store'), [
+        'trainer_id' => $otherTrainer->id,
+        'room_id' => $room->id,
+        'workout_start' => now()->addDay()->setTime(10, 0)->format('Y-m-d H:i'),
+        'workout_end' => now()->addDay()->setTime(11, 0)->format('Y-m-d H:i'),
+    ])->assertRedirect(route('workouts.index'));
+
+    expect(Workout::sole()->trainer->is($trainer))->toBeTrue();
 });
 
 test('trainer sees records on own workout', function () {
@@ -86,18 +122,7 @@ test('trainer sees records on own workout', function () {
     $this->actingAs($trainer)->get(route('workouts.show', $workout))
         ->assertOk()
         ->assertSee($client->name)
-        ->assertDontSee(route('workouts.edit', $workout), false);
-});
-
-test('trainer cannot manage workouts', function () {
-    $trainer = userWithRole('trainer');
-    $workout = workoutFor($trainer);
-
-    $this->actingAs($trainer)->get(route('workouts.create'))->assertForbidden();
-    $this->actingAs($trainer)->get(route('workouts.edit', $workout))->assertForbidden();
-    $this->actingAs($trainer)->delete(route('workouts.destroy', $workout))->assertForbidden();
-
-    expect(Workout::whereKey($workout->id)->exists())->toBeTrue();
+        ->assertDontSee(route('workouts.edit', workoutFor(userWithRole('trainer'))), false);
 });
 
 test('admin users list shows each user role', function () {

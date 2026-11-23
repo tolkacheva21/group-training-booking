@@ -13,7 +13,9 @@ class InventoryController extends Controller
 {
     public function index(): View
     {
-        $inventories = Inventory::orderBy('name')->get();
+        $inventories = Inventory::with(['workouts.trainer', 'workouts.room'])
+            ->orderBy('name')
+            ->get();
 
         return view('inventories.index', compact('inventories'));
     }
@@ -41,7 +43,9 @@ class InventoryController extends Controller
     {
         $data = $request->validate($this->rules($inventory), $this->messages());
 
+        // Максимум одновременно занятого инвентаря на будущих (не отменённых) тренировках
         $maxOccupied = $inventory->workouts()
+            ->notCancelled()
             ->where('workout_end', '>', now())
             ->get()
             ->map(fn ($workout) => $inventory->occupiedBetween($workout->workout_start, $workout->workout_end))
@@ -60,7 +64,7 @@ class InventoryController extends Controller
 
     public function destroy(Inventory $inventory): RedirectResponse
     {
-        if ($inventory->workouts()->where('workout_end', '>', now())->exists()) {
+        if ($inventory->workouts()->notCancelled()->where('workout_end', '>', now())->exists()) {
             return redirect()->route('inventories.index')
                 ->withErrors(['inventory' => "Инвентарь «{$inventory->name}» назначен на предстоящие тренировки."]);
         }

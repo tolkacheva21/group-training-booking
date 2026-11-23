@@ -4,7 +4,21 @@
     <div class="card">
         <h1>Запись №{{ $record->id }}</h1>
 
-        <p>Статус: {{ $record->status->title }}</p>
+        @if (session('success'))
+            <div class="flash">{{ session('success') }}</div>
+        @endif
+
+        <p>Статус записи: {{ $record->status->title }}</p>
+
+        <p>
+            Статус оплаты:
+            <strong>{{ $record->paymentLabel() }}</strong>
+            @if ($record->isPaid() && $record->paid_at)
+                ({{ \App\Support\DisplayTime::toLocal($record->paid_at)->format('d.m.Y H:i') }})
+            @endif
+        </p>
+
+        <p>Стоимость: {{ number_format((float) $record->workout->price, 2, ',', ' ') }} ₽</p>
 
         <h2>Пользователь</h2>
 
@@ -19,12 +33,12 @@
 
         <p>
             Начало:
-            {{ $record->workout->workout_start->format('d.m.Y H:i') }}
+            {{ \App\Support\DisplayTime::toLocal($record->workout->workout_start)->format('d.m.Y H:i') }}
         </p>
 
         <p>
             Окончание:
-            {{ $record->workout->workout_end->format('d.m.Y H:i') }}
+            {{ \App\Support\DisplayTime::toLocal($record->workout->workout_end)->format('d.m.Y H:i') }}
         </p>
 
         <div class="form-actions">
@@ -38,6 +52,32 @@
             <a class="button" href="{{ route('records.index') }}">
                 К списку записей
             </a>
+
+            @can('pay', $record)
+                @if (! $record->isPaid() && ! $record->hasStatus(App\Models\Status::Rejected) && ! $record->hasStatus(App\Models\Status::Completed))
+                    <form class="inline"
+                          action="{{ route('records.pay', $record) }}"
+                          method="POST">
+                        @csrf
+                        @method('PATCH')
+
+                        <button type="submit">Оплатить</button>
+                    </form>
+
+                    <form class="inline"
+                          action="{{ route('records.cancel-payment', $record) }}"
+                          method="POST">
+                        @csrf
+                        @method('PATCH')
+
+                        <button class="button-danger"
+                                type="submit"
+                                onclick="return confirm('Отменить оплату?')">
+                            Отменить оплату
+                        </button>
+                    </form>
+                @endif
+            @endcan
 
             @can('confirm', $record)
                 <form class="inline"

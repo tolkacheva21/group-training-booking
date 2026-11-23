@@ -151,9 +151,96 @@
         .actions .button {
             margin: 0;
         }
+
+        .flash {
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-left: 4px solid #365d46;
+            background: #edf3ee;
+            color: #24402f;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #edf3ee;
+            color: #365d46;
+        }
+
+        .badge-paid {
+            background: #e4f2e6;
+            color: #2f6b39;
+        }
+
+        .badge-unpaid {
+            background: #fdf1dc;
+            color: #8a5b12;
+        }
+
+        .badge-cancelled {
+            background: #fbeeee;
+            color: #842d2d;
+        }
+
+        .muted {
+            color: #6b7a70;
+            font-size: 14px;
+        }
+
+        .inventory-usage {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 14px;
+        }
+
+        .workout-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 16px 18px;
+            border: 1px solid #dce3dd;
+            border-radius: 6px;
+            background: #fafcfb;
+        }
+
+        .workout-row .workout-info {
+            display: grid;
+            gap: 4px;
+        }
+
+        .workout-row .workout-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .workout-row .workout-meta {
+            font-size: 14px;
+            color: #4a5a4f;
+        }
+
+        .workout-row .workout-action {
+            flex: 0 0 auto;
+        }
+
+        .workout-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .records-grid {
+            display: grid;
+            gap: 25px;
+        }
     </style>
 
     <div class="page">
+        @if (session('success'))
+            <div class="flash">{{ session('success') }}</div>
+        @endif
+
         @if ($errors->any())
             <div class="errors">
                 <p>Исправьте ошибки:</p>

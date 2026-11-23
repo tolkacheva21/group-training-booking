@@ -13,4 +13,13 @@ abstract class TestCase extends BaseTestCase
     protected $seed = true;
 
     protected $seeder = StatusSeeder::class;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Тесты работают в UTC, чтобы данные, построенные через now(), совпадали
+        // с временем, которое формы отправляют и получают.
+        config(['app.display_timezone' => 'UTC']);
+    }
 }

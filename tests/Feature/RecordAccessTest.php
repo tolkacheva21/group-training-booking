@@ -72,17 +72,20 @@ test('record is created for the authenticated user regardless of submitted user_
     $this->actingAs($user)->post(route('records.store'), [
         'workout_id' => $workout->id,
         'user_id' => $otherUser->id,
-    ])->assertRedirect(route('records.index'));
+    ])->assertRedirect();
 
     expect(Record::where('workout_id', $workout->id)->pluck('user_id')->all())->toBe([$user->id]);
 });
 
-test('booking form has no user field', function () {
-    createFutureWorkout();
+test('records page lists available workouts with a booking button next to each', function () {
+    $workout = createFutureWorkout();
 
-    $this->actingAs(User::factory()->create())->get(route('records.create'))
+    $this->actingAs(User::factory()->create())->get(route('records.index'))
         ->assertOk()
-        ->assertDontSee('name="user_id"', false);
+        ->assertSee($workout->trainer->name)
+        ->assertSee('Записаться')
+        ->assertSee('name="workout_id" value="'.$workout->id.'"', false)
+        ->assertDontSee('Создать запись');
 });
 
 test('manager sees records of all users', function () {
@@ -99,14 +102,32 @@ test('manager sees records of all users', function () {
         ->assertSee($client->name);
 });
 
-test('trainer cannot book own workout', function () {
+test('trainer cannot book a workout as a visitor', function () {
     $workout = createFutureWorkout();
 
     $this->actingAs($workout->trainer)->post(route('records.store'), ['workout_id' => $workout->id])
-        ->assertSessionHasErrors('workout_id');
+        ->assertForbidden();
 
     expect($workout->records()->exists())->toBeFalse();
 });
+
+test('admin and manager cannot book workouts as visitors', function (string $role) {
+    $workout = createFutureWorkout();
+
+    $this->actingAs(userWithRole($role))->post(route('records.store'), ['workout_id' => $workout->id])
+        ->assertForbidden();
+
+    expect($workout->records()->exists())->toBeFalse();
+})->with(['admin', 'manager']);
+
+test('roles that cannot book do not see the booking button', function (string $role) {
+    createFutureWorkout();
+
+    $this->actingAs(userWithRole($role))->get(route('records.index'))
+        ->assertOk()
+        ->assertDontSee('Записаться')
+        ->assertDontSee('Создать запись');
+})->with(['admin', 'manager', 'trainer']);
 
 test('trainer can view records of own workout but not of other workouts', function () {
     $workout = createFutureWorkout();

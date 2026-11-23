@@ -17,6 +17,15 @@ class RecordPolicy
     }
 
     /**
+     * Only visitors (the "user" role) book workouts for themselves.
+     * Admins, managers and trainers never book as visitors.
+     */
+    public function book(User $user): bool
+    {
+        return $user->role?->name === 'user';
+    }
+
+    /**
      * Determine whether the user can view the record.
      */
     public function view(User $user, Record $record): bool
@@ -50,5 +59,13 @@ class RecordPolicy
     {
         return ! $record->hasStatus(Status::Completed)
             && ($this->viewAll($user) || $record->user_id === $user->id);
+    }
+
+    /**
+     * Determine whether the user can pay for the record (only its owner).
+     */
+    public function pay(User $user, Record $record): bool
+    {
+        return $record->user_id === $user->id;
     }
 }
